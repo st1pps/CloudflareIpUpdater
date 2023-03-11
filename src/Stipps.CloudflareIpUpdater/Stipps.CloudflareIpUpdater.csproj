@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <UserSecretsId>49a7f376-2784-43fc-bf6a-aa7bcee914fc</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+      <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="7.0.0" />
+      <PackageReference Include="Microsoft.NET.Build.Containers" Version="0.3.2" />
+      <PackageReference Include="Quartz.Extensions.Hosting" Version="3.6.2" />
+      <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.1" />
+      <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Stipps.CloudflareApi.Extensions.DependencyInjection\Stipps.CloudflareApi.Extensions.DependencyInjection.csproj" />
+      <ProjectReference Include="..\Stipps.CloudflareApi\Stipps.CloudflareApi.csproj" />
+      <ProjectReference Include="..\Stipps.CloudflareApi.Extensions.DependencyInjection\Stipps.CloudflareApi.Extensions.DependencyInjection.csproj" />
+    </ItemGroup>
+
+</Project>
