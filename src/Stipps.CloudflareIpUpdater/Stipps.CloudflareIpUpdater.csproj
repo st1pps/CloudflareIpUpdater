@@ -7,12 +7,16 @@
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <UserSecretsId>49a7f376-2784-43fc-bf6a-aa7bcee914fc</UserSecretsId>
+        <ContainerBaseImage>mcr.microsoft.com/dotnet/nightly/runtime:7.0.3-jammy-chiseled-amd64</ContainerBaseImage>
+        <ContainerRuntimeIdentifier>linux-arm64</ContainerRuntimeIdentifier>
     </PropertyGroup>
 
     <ItemGroup>
       <Content Include="..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+        <!-- Work around https://github.com/dotnet/sdk-container-builds/issues/236 -->
+        <ContainerImageTags Include="$(ContainerImageTags)" />
     </ItemGroup>
 
     <ItemGroup>

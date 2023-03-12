@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text.Json.Serialization;
 using Stipps.CloudflareApi.Models;
 
 namespace Stipps.CloudflareApi.Requests;
@@ -18,8 +19,10 @@ public class UpdateDnsRecordRequest
         Ttl = record.Ttl;
     }
     
+    [JsonIgnore]
     public string ZoneId { get; }
     
+    [JsonIgnore]
     public string RecordId { get; }
     
     public string Name { get; set; }

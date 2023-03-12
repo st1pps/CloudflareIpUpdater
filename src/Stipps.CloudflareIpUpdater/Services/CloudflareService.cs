@@ -80,8 +80,11 @@ public class CloudflareService
         if (existingRecord is null)
         {
             _logger.LogInformation("No existing A record found, creating new one");
-            await _client.CreateRecord(ip, _settings.Value.ZoneId, _settings.Value.RecordName,
-                _settings.Value.ProxyEnabled);
+            await _client.CreateRecord(
+                new CreateDnsRecordRequest(_settings.Value.ZoneId, _settings.Value.RecordName, ip)
+                {
+                    Proxied = true
+                });
             return;
         }
 

@@ -1,6 +1,4 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using System.Net.Sockets;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Stipps.CloudflareApi.Models;
@@ -11,7 +9,7 @@ namespace Stipps.CloudflareApi;
 public interface ICloudflareApiClient
 {
     Task<IEnumerable<DnsRecord>> GetRecordsForZoneAsync(string zoneId);
-    Task CreateRecord(IPAddress address, string zoneId, string recordName, bool enableProxy);
+    Task CreateRecord(CreateDnsRecordRequest create);
     Task UpdateRecord(UpdateDnsRecordRequest update);
     Task DeleteRecord(string zoneId, string recordId);
 }
@@ -46,19 +44,12 @@ public class CloudflareApiClient : ICloudflareApiClient
         return result.Result;
     }
 
-    public async Task CreateRecord(IPAddress address, string zoneId, string recordName, bool enableProxy)
+    public async Task CreateRecord(CreateDnsRecordRequest create)
     {
         var request = new HttpRequestMessage(HttpMethod.Post,
-            $"/client/v4/zones/{zoneId}/dns_records");
-        request.Content = JsonContent.Create(new
-        {
-            content = address.ToString(),
-            name = recordName,
-            type = address.AddressFamily == AddressFamily.InterNetwork ? "A" : "AAAA",
-            comment = "DynamicIpUpdater",
-            proxied = enableProxy,
-            ttl = 1
-        }, options: _jsonSerializerOptions);
+            $"/client/v4/zones/{create.ZoneId}/dns_records");
+        
+        request.Content = JsonContent.Create(create, options: _jsonSerializerOptions);
         var response = await _client.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
@@ -67,14 +58,7 @@ public class CloudflareApiClient : ICloudflareApiClient
     {
         var request = new HttpRequestMessage(HttpMethod.Put,
             $"/client/v4/zones/{update.ZoneId}/dns_records/{update.RecordId}");
-        request.Content = JsonContent.Create(new
-        {
-            content = update.Content,
-            proxied = update.Proxied,
-            type = update.Type,
-            name = update.Name,
-            comment = "Automatically updated by Stipps.CloudflareIpUpdater"
-        }, options: _jsonSerializerOptions);
+        request.Content = JsonContent.Create(update, options: _jsonSerializerOptions);
         var response = await _client.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }

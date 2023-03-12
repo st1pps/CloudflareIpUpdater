@@ -73,7 +73,7 @@ public class CloudflareServiceTests
         await _apiClient.DidNotReceive().UpdateRecord(Arg.Any<UpdateDnsRecordRequest>());
         await _apiClient.DidNotReceive().DeleteRecord(Arg.Any<string>(), Arg.Any<string>());
         await _apiClient.DidNotReceive()
-            .CreateRecord(Arg.Any<IPAddress>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>());
+            .CreateRecord(Arg.Any<CreateDnsRecordRequest>());
     }
 
     [Fact]
@@ -87,9 +87,13 @@ public class CloudflareServiceTests
         await _sut.UpdateIp(_ips[0], _ips[1]);
         
         // Assert
-        await _apiClient.ReceivedWithAnyArgs(2).CreateRecord(default!, default!, default!, default);
-        await _apiClient.Received().CreateRecord(_ips[0], _settings.Value.ZoneId, _settings.Value.RecordName, _settings.Value.ProxyEnabled);
-        await _apiClient.Received().CreateRecord(_ips[1], _settings.Value.ZoneId, _settings.Value.RecordName, _settings.Value.ProxyEnabled);
+        await _apiClient.ReceivedWithAnyArgs(2).CreateRecord(default!);
+        await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg =>
+            arg.Content == _ips[0].ToString() && arg.ZoneId == _settings.Value.ZoneId &&
+            arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
+        await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg =>
+            arg.Content == _ips[1].ToString() && arg.ZoneId == _settings.Value.ZoneId &&
+            arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
         await _apiClient.DidNotReceiveWithAnyArgs().DeleteRecord(default!, default!);
         await _apiClient.DidNotReceiveWithAnyArgs().UpdateRecord(default!);
     }
@@ -120,7 +124,7 @@ public class CloudflareServiceTests
         await _sut.UpdateIp(_ips[0], _ips[1]);
         
         // Assert
-        await _apiClient.Received().CreateRecord(_ips[1], _settings.Value.ZoneId, _settings.Value.RecordName, _settings.Value.ProxyEnabled);
+        await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg => arg.Content == _ips[1].ToString() && arg.ZoneId == _settings.Value.ZoneId && arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
         await _apiClient.DidNotReceiveWithAnyArgs().DeleteRecord(default!, default!);
         await _apiClient.DidNotReceiveWithAnyArgs().UpdateRecord(default!);
     }
@@ -152,7 +156,9 @@ public class CloudflareServiceTests
         
         // Assert
         await _apiClient.Received().UpdateRecord(Arg.Is<UpdateDnsRecordRequest>(ip => ip.Content == _ips[0].ToString()));
-        await _apiClient.Received().CreateRecord(_ips[1], _settings.Value.ZoneId, _settings.Value.RecordName, _settings.Value.ProxyEnabled);
+        await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg =>
+            arg.Content == _ips[1].ToString() && arg.ZoneId == _settings.Value.ZoneId &&
+            arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
         await _apiClient.DidNotReceiveWithAnyArgs().DeleteRecord(default!, default!);
     }
     
@@ -182,7 +188,7 @@ public class CloudflareServiceTests
         await _sut.UpdateIp(_ips[0], _ips[1]);
         
         // Assert
-        await _apiClient.Received().CreateRecord(_ips[0], _settings.Value.ZoneId, _settings.Value.RecordName, _settings.Value.ProxyEnabled);
+        await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg => arg.Content == _ips[0].ToString() && arg.ZoneId == _settings.Value.ZoneId && arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
         await _apiClient.DidNotReceiveWithAnyArgs().DeleteRecord(default!, default!);
         await _apiClient.DidNotReceiveWithAnyArgs().UpdateRecord(default!);
     }
@@ -239,6 +245,7 @@ public class CloudflareServiceTests
         await _sut.UpdateIp(_ips[0], _ips[1]);
 
         // Assert
+        await _apiClient.DidNotReceive().CreateRecord(Arg.Any<CreateDnsRecordRequest>());
         await _apiClient.Received(1).DeleteRecord(_settings.Value.ZoneId, Ipv4Ids[1]);
         await _apiClient.Received(1)
             .UpdateRecord(Arg.Is<UpdateDnsRecordRequest>(e =>

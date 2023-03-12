@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Quartz;
 using Serilog;
 using Serilog.Events;
-using Stipps.CloudflareApi;
 using Stipps.CloudflareApi.Configuration;
 using Stipps.CloudflareApi.Extensions.DependencyInjection;
 using Stipps.CloudflareIpUpdater.Configuration;

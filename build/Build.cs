@@ -1,18 +1,13 @@
-using System;
-using System.Linq;
 using Nuke.Common;
-using Nuke.Common.CI;
-using Nuke.Common.Execution;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
+using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
 using Serilog;
-using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
-using static Nuke.Common.IO.PathConstruction;
 
 class Build : NukeBuild
 {
@@ -25,6 +20,12 @@ class Build : NukeBuild
     
     [GitVersion]
     readonly GitVersion GitVersion;
+
+    [Parameter] 
+    readonly string DockerImageName;
+    
+    [Parameter]
+    readonly string DockerRegistry = "registry.hub.docker.com";
 
     Target Print => _ => _
         .Executes(() =>
@@ -69,4 +70,52 @@ class Build : NukeBuild
                 .SetNoBuild(InvokedTargets.Contains(Compile))
             );
         });
+
+    Target BuildDocker => _ => _
+        .DependsOn(Test)
+        .Requires(() => DockerImageName)
+        .Executes(() =>
+        {
+            /*DockerTasks.DockerLogin(_ => _
+                .SetUsername(DockerUsername)
+                .SetPassword(DockerAccessToken));*/
+
+           DotNetTasks.DotNetPublish(_ => _
+                .SetProject(Solution.GetProject("Stipps.CloudflareIpUpdater"))
+                .SetConfiguration(Configuration.Release)
+                .SetVersion(GitVersion.FullSemVer)
+                .SetProperty("ContainerImageName", $"\"{DockerImageName}\"")
+                .SetProperty("ContainerRegistry", DockerRegistry)
+                //.SetProperty("ContainerImageTags", $"{GitVersion.SemVer};latest")
+                
+                .EnableSelfContained()
+                .EnableContinuousIntegrationBuild()
+                .EnablePublishSingleFile()
+                .SetProcessArgumentConfigurator(_ => _
+                    .Add("--os linux")
+                    .Add("--arch x64")
+                    .Add("/t:PublishContainer"))
+            );
+        });
+
+    /*Target PublishDocker => _ => _
+        .DependsOn(BuildDocker)
+        .Executes(() =>
+        {
+            var currentImage = $"{ImageName}:{GitVersion.FullSemVer}";
+            DockerTasks.DockerImageTag(_ => _
+                .SetSourceImage(currentImage)
+                .SetTargetImage($"{PublishedImageName}:latest"));
+
+            DockerTasks.DockerPush(_ => _
+                .SetName(currentImage)
+                .EnableAllTags()
+            );
+        });
+
+    Target CleanupDockerImages => _ => _
+        .Executes(() =>
+        {
+            DockerTasks.DockerImageRm(_ => _.SetImages(ImageName));
+        }).After(PublishDocker);*/
 }
