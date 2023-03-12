@@ -7,17 +7,6 @@ namespace Stipps.CloudflareApi.UnitTests;
 
 public class JsonSerializationWithSnakeCaseNamingTests
 {
-    private readonly JsonSerializerOptions _serializerOptions;
-
-    public JsonSerializationWithSnakeCaseNamingTests()
-    {
-        _serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = new SnakeCaseNamingPolicy(),
-            Converters = { new JsonStringEnumConverter() }
-        };
-    }
-
     [Fact]
     public void CanSerializeObjectToJson()
     {
@@ -39,7 +28,7 @@ public class JsonSerializationWithSnakeCaseNamingTests
         };
         
         // Act
-        var json = JsonSerializer.Serialize(dnsRecord, _serializerOptions);
+        var json = JsonSerializer.Serialize(dnsRecord, CloudflareApiClient.JsonSerializerOptions);
         
         // Assert
         json.Should().NotBeNullOrWhiteSpace();
@@ -67,7 +56,7 @@ public class JsonSerializationWithSnakeCaseNamingTests
             """;
 
         // Act
-        var dnsRecord = JsonSerializer.Deserialize<DnsRecord>(json, _serializerOptions);
+        var dnsRecord = JsonSerializer.Deserialize<DnsRecord>(json, CloudflareApiClient.JsonSerializerOptions);
 
         // Assert
         dnsRecord.Should().NotBeNull();

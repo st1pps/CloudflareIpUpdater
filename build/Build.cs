@@ -80,8 +80,7 @@ class Build : NukeBuild
                 .SetConfiguration(Configuration.Release)
                 .SetVersion(GitVersion.MajorMinorPatch)
                 .SetProperty("ContainerImageName", $"\"{DockerImageName}\"")
-                .SetProperty("ContainerRegistry", DockerRegistry)
-
+                .SetProperty("ContainerImageTag", GitVersion.MajorMinorPatch)
                 .EnableSelfContained()
                 .EnablePublishSingleFile()
                 .SetProcessArgumentConfigurator(_ => _
