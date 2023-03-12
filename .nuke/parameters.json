@@ -1,5 +1,5 @@
 {
   "$schema": "./build.schema.json",
   "Solution": "Stipps.CloudflareIpUpdater.sln",
-  "DockerImageName": "st1pps/coudflare-ip-updater"
+  "DockerImageName": "st1pps/cloudflare-ip-updater"
 }

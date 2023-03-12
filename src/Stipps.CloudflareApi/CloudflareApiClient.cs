@@ -1,8 +1,9 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using Stipps.CloudflareApi.Converters;
 using Stipps.CloudflareApi.Models;
 using Stipps.CloudflareApi.Requests;
+using Stipps.CloudflareApi.Serialization;
 
 namespace Stipps.CloudflareApi;
 
@@ -20,10 +21,10 @@ public class CloudflareApiClient : ICloudflareApiClient
 
     private readonly HttpClient _client;
     
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    public static JsonSerializerOptions JsonSerializerOptions => new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = { new JsonStringEnumConverter() }
+        PropertyNamingPolicy = new SnakeCaseNamingPolicy(),
+        Converters = { new DnsRecordTypeConverter() },
     };
 
     public CloudflareApiClient(IHttpClientFactory httpClientFactory)
@@ -37,7 +38,7 @@ public class CloudflareApiClient : ICloudflareApiClient
             $"/client/v4/zones/{zoneId}/dns_records");
         var response = await _client.SendAsync(request);
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<ApiResult<DnsRecord>>(_jsonSerializerOptions);
+        var result = await response.Content.ReadFromJsonAsync<ApiResult<DnsRecord>>(JsonSerializerOptions);
         if (result is null)
             throw new Exception("Cloudflare API returned null");
 
@@ -49,7 +50,7 @@ public class CloudflareApiClient : ICloudflareApiClient
         var request = new HttpRequestMessage(HttpMethod.Post,
             $"/client/v4/zones/{create.ZoneId}/dns_records");
         
-        request.Content = JsonContent.Create(create, options: _jsonSerializerOptions);
+        request.Content = JsonContent.Create(create, options: JsonSerializerOptions);
         var response = await _client.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
@@ -58,7 +59,7 @@ public class CloudflareApiClient : ICloudflareApiClient
     {
         var request = new HttpRequestMessage(HttpMethod.Put,
             $"/client/v4/zones/{update.ZoneId}/dns_records/{update.RecordId}");
-        request.Content = JsonContent.Create(update, options: _jsonSerializerOptions);
+        request.Content = JsonContent.Create(update, options: JsonSerializerOptions);
         var response = await _client.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
