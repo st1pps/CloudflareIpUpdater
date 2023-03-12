@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stipps.CloudflareIpUpdater", "src\Stipps.CloudflareIpUpdater\Stipps.CloudflareIpUpdater.csproj", "{A69E9B98-4F5C-40E7-B803-563F47B2AC82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stipps.CloudflareIpUpdaterUnitTests", "tests\Stipps.CloudflareIpUpdaterUnitTests\Stipps.CloudflareIpUpdaterUnitTests.csproj", "{2C4EFE33-AB76-423C-AA89-F8F774043057}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stipps.CloudflareApi", "src\Stipps.CloudflareApi\Stipps.CloudflareApi.csproj", "{0F99B3FF-A508-454E-B928-0357C3E39406}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stipps.CloudflareApi.Extensions.DependencyInjection", "src\Stipps.CloudflareApi.Extensions.DependencyInjection\Stipps.CloudflareApi.Extensions.DependencyInjection.csproj", "{C8C3053C-F70F-4F06-A903-3254D10D7915}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{100F6F1A-A667-4D74-AD35-7B4FFA1452D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stipps.CloudflareApi.UnitTests", "tests\Stipps.CloudflareApi.UnitTests\Stipps.CloudflareApi.UnitTests.csproj", "{C97D5900-A16A-440A-A193-900E833930AC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{81676F27-1ED3-4A8A-BCE8-8506B2780468}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{100F6F1A-A667-4D74-AD35-7B4FFA1452D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{100F6F1A-A667-4D74-AD35-7B4FFA1452D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A69E9B98-4F5C-40E7-B803-563F47B2AC82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A69E9B98-4F5C-40E7-B803-563F47B2AC82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A69E9B98-4F5C-40E7-B803-563F47B2AC82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A69E9B98-4F5C-40E7-B803-563F47B2AC82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C4EFE33-AB76-423C-AA89-F8F774043057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C4EFE33-AB76-423C-AA89-F8F774043057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C4EFE33-AB76-423C-AA89-F8F774043057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C4EFE33-AB76-423C-AA89-F8F774043057}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F99B3FF-A508-454E-B928-0357C3E39406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F99B3FF-A508-454E-B928-0357C3E39406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F99B3FF-A508-454E-B928-0357C3E39406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F99B3FF-A508-454E-B928-0357C3E39406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8C3053C-F70F-4F06-A903-3254D10D7915}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8C3053C-F70F-4F06-A903-3254D10D7915}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8C3053C-F70F-4F06-A903-3254D10D7915}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8C3053C-F70F-4F06-A903-3254D10D7915}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C97D5900-A16A-440A-A193-900E833930AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C97D5900-A16A-440A-A193-900E833930AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C97D5900-A16A-440A-A193-900E833930AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C97D5900-A16A-440A-A193-900E833930AC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
