@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -7,6 +9,7 @@ using Stipps.CloudflareApi;
 using Stipps.CloudflareApi.Models;
 using Stipps.CloudflareApi.Requests;
 using Stipps.CloudflareIpUpdater.Configuration;
+using Stipps.CloudflareIpUpdater.Models;
 using Stipps.CloudflareIpUpdater.Services;
 
 namespace Stipps.CloudflareIpUpdaterUnitTests;
@@ -16,7 +19,7 @@ public class CloudflareServiceTests
     private readonly CloudflareService _sut;
     private readonly ICloudflareApiClient _apiClient = Substitute.For<ICloudflareApiClient>();
     private readonly ILogger<CloudflareService> _logger = new NullLogger<CloudflareService>();
-    private readonly IPAddress[] _ips = { IPAddress.Parse("1.2.3.4"), IPAddress.Parse("2001:db8::1") };
+    private readonly IpValues _ips = new(IPAddress.Parse("1.2.3.4"), IPAddress.Parse("2001:db8::1"));
     
     private const string ZoneName = "ZoneName.com";
 
@@ -43,7 +46,10 @@ public class CloudflareServiceTests
 
     public CloudflareServiceTests()
     {
-        _sut = new CloudflareService(_logger, _apiClient, _settings);
+        var cacheOptions = Substitute.For<IOptions<MemoryCacheOptions>>();
+        cacheOptions.Value.Returns(new MemoryCacheOptions { Clock = new SystemClock() });
+        var memoryCache = new MemoryCache(cacheOptions);
+        _sut = new CloudflareService(_logger, _apiClient, _settings, memoryCache);
     }
 
     [Fact]
@@ -51,9 +57,9 @@ public class CloudflareServiceTests
     {
         // Arrange
         _apiClient.GetRecordsForZoneAsync(Arg.Any<string>())
-            .Returns(_ips.Select(ip => new DnsRecord
+            .Returns(_ips.AsEnumerable().Select(ip => new DnsRecord
             {
-                Type = ip.AddressFamily == AddressFamily.InterNetwork ? DnsRecordType.A: DnsRecordType.AAAA,
+                Type = ip.AddressFamily == AddressFamily.InterNetwork ? DnsRecordType.A : DnsRecordType.AAAA,
                 Content = ip.ToString(),
                 CreatedOn = DateTimeOffset.Now,
                 ModifiedOn = DateTimeOffset.Now,
@@ -66,7 +72,7 @@ public class CloudflareServiceTests
             }));
 
         // Act
-        await _sut.UpdateIp(_ips[0], _ips[1]);
+        await _sut.UpdateIp(_ips);
 
         // Assert
 
@@ -84,15 +90,15 @@ public class CloudflareServiceTests
             .Returns(Enumerable.Empty<DnsRecord>());
         
         // Act
-        await _sut.UpdateIp(_ips[0], _ips[1]);
+        await _sut.UpdateIp(_ips);
         
         // Assert
         await _apiClient.ReceivedWithAnyArgs(2).CreateRecord(default!);
         await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg =>
-            arg.Content == _ips[0].ToString() && arg.ZoneId == _settings.Value.ZoneId &&
+            arg.Content == _ips.V4!.ToString() && arg.ZoneId == _settings.Value.ZoneId &&
             arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
         await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg =>
-            arg.Content == _ips[1].ToString() && arg.ZoneId == _settings.Value.ZoneId &&
+            arg.Content == _ips.V6!.ToString() && arg.ZoneId == _settings.Value.ZoneId &&
             arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
         await _apiClient.DidNotReceiveWithAnyArgs().DeleteRecord(default!, default!);
         await _apiClient.DidNotReceiveWithAnyArgs().UpdateRecord(default!);
@@ -108,7 +114,7 @@ public class CloudflareServiceTests
                 new DnsRecord
                 {
                     Type = DnsRecordType.A,
-                    Content = _ips[0].ToString(),
+                    Content = _ips.V4!.ToString(),
                     CreatedOn = DateTimeOffset.Now,
                     ModifiedOn = DateTimeOffset.Now,
                     Id =Ipv4Ids[0],
@@ -121,10 +127,10 @@ public class CloudflareServiceTests
             });
         
         // Act
-        await _sut.UpdateIp(_ips[0], _ips[1]);
+        await _sut.UpdateIp(_ips);
         
         // Assert
-        await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg => arg.Content == _ips[1].ToString() && arg.ZoneId == _settings.Value.ZoneId && arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
+        await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg => arg.Content == _ips.V6!.ToString() && arg.ZoneId == _settings.Value.ZoneId && arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
         await _apiClient.DidNotReceiveWithAnyArgs().DeleteRecord(default!, default!);
         await _apiClient.DidNotReceiveWithAnyArgs().UpdateRecord(default!);
     }
@@ -152,12 +158,14 @@ public class CloudflareServiceTests
             });
         
         // Act
-        await _sut.UpdateIp(_ips[0], _ips[1]);
+        await _sut.UpdateIp(_ips);
         
         // Assert
-        await _apiClient.Received().UpdateRecord(Arg.Is<UpdateDnsRecordRequest>(ip => ip.Content == _ips[0].ToString()));
+        await _apiClient.Received().UpdateRecord(Arg.Is<UpdateDnsRecordRequest>(
+            ip => 
+                ip.Content == _ips.V4!.ToString()));
         await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg =>
-            arg.Content == _ips[1].ToString() && arg.ZoneId == _settings.Value.ZoneId &&
+            arg.Content == _ips.V6!.ToString() && arg.ZoneId == _settings.Value.ZoneId &&
             arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
         await _apiClient.DidNotReceiveWithAnyArgs().DeleteRecord(default!, default!);
     }
@@ -172,7 +180,7 @@ public class CloudflareServiceTests
                 new DnsRecord
                 {
                     Type = DnsRecordType.AAAA,
-                    Content = _ips[1].ToString(),
+                    Content = _ips.V6!.ToString(),
                     CreatedOn = DateTimeOffset.Now,
                     ModifiedOn = DateTimeOffset.Now,
                     Id = Ipv6Ids[0],
@@ -185,10 +193,15 @@ public class CloudflareServiceTests
             });
         
         // Act
-        await _sut.UpdateIp(_ips[0], _ips[1]);
+        await _sut.UpdateIp(_ips);
         
         // Assert
-        await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(arg => arg.Content == _ips[0].ToString() && arg.ZoneId == _settings.Value.ZoneId && arg.Name == _settings.Value.RecordName && arg.Proxied == _settings.Value.ProxyEnabled));
+        await _apiClient.Received().CreateRecord(Arg.Is<CreateDnsRecordRequest>(
+            arg =>
+                arg.Content == _ips.V4!.ToString() 
+                   && arg.ZoneId == _settings.Value.ZoneId
+                   && arg.Name == _settings.Value.RecordName 
+                   && arg.Proxied == _settings.Value.ProxyEnabled));
         await _apiClient.DidNotReceiveWithAnyArgs().DeleteRecord(default!, default!);
         await _apiClient.DidNotReceiveWithAnyArgs().UpdateRecord(default!);
     }
@@ -229,7 +242,7 @@ public class CloudflareServiceTests
                 new DnsRecord
                 {
                     Type = DnsRecordType.AAAA,
-                    Content = _ips[1].ToString(),
+                    Content = _ips.V6!.ToString(),
                     CreatedOn = DateTimeOffset.Now,
                     ModifiedOn = DateTimeOffset.Now,
                     Id = Ipv6Ids[0],
@@ -242,13 +255,13 @@ public class CloudflareServiceTests
             });
 
         // Act
-        await _sut.UpdateIp(_ips[0], _ips[1]);
+        await _sut.UpdateIp(_ips);
 
         // Assert
         await _apiClient.DidNotReceive().CreateRecord(Arg.Any<CreateDnsRecordRequest>());
         await _apiClient.Received(1).DeleteRecord(_settings.Value.ZoneId, Ipv4Ids[1]);
         await _apiClient.Received(1)
             .UpdateRecord(Arg.Is<UpdateDnsRecordRequest>(e =>
-                e.RecordId == Ipv4Ids[0] && e.ZoneId == _settings.Value.ZoneId && e.Content == _ips[0].ToString()));
+                e.RecordId == Ipv4Ids[0] && e.ZoneId == _settings.Value.ZoneId && e.Content == _ips.V4!.ToString()));
     }
 }

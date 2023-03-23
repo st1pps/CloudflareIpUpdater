@@ -81,7 +81,7 @@ class Build : NukeBuild
                 .SetVersion(GitVersion.MajorMinorPatch)
                 .SetProperty("ContainerImageName", $"\"{DockerImageName}\"")
                 .SetProperty("ContainerImageTag", GitVersion.MajorMinorPatch)
-                .EnableSelfContained()
+                //.EnableSelfContained()
                 .EnablePublishSingleFile()
                 .SetProcessArgumentConfigurator(_ => _
                     .Add("--os linux")

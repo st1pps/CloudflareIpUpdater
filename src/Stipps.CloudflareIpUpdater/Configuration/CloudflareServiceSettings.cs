@@ -14,4 +14,8 @@ public class CloudflareServiceSettings
 
     [Required] 
     public required bool ProxyEnabled { get; init; }
+    
+    public int UpdateIntervalMinutes { get; init; } = 5;
+
+    public int DnsRecordsCacheMinutes { get; init; } = 180;
 }

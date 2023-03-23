@@ -1,14 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Quartz;
 using Serilog;
 using Serilog.Events;
-using Stipps.CloudflareApi.Configuration;
 using Stipps.CloudflareApi.Extensions.DependencyInjection;
 using Stipps.CloudflareIpUpdater.Configuration;
-using Stipps.CloudflareIpUpdater.Jobs;
 using Stipps.CloudflareIpUpdater.Services;
+using Stipps.CloudflareIpUpdater.Workers;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -36,21 +34,19 @@ finally
 
 static IHost BuildHost(string[] args) =>
     new HostBuilder()
-        .ConfigureAppConfiguration(config =>
+        .ConfigureAppConfiguration((context, config) =>
         {
+            config.SetBasePath(context.HostingEnvironment.ContentRootPath);
             config.AddCommandLine(args);
-            config.AddJsonFile("appsettings.json", optional: true);
+            config.AddJsonFile(Path.Combine("Settings","appsettings.json"), optional: false);
             config.AddEnvironmentVariables();
             config.AddUserSecrets<Program>();
         })
         .ConfigureServices((context, services) =>
         {
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(context.Configuration).CreateLogger();
             services.AddLogging();
-            
-            services.AddOptions<CloudflareConnectionSettings>()
-                .Configure(settings=> context.Configuration.GetSection(CloudflareConnectionSettings.SectionName).Bind(settings))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
+            services.AddMemoryCache();
             
             services.AddOptions<CloudflareServiceSettings>()
                 .Configure(settings =>
@@ -59,27 +55,11 @@ static IHost BuildHost(string[] args) =>
                 .ValidateOnStart();
             
             services.AddHttpClient();
-            services.AddCloudflareApi();
-            services.AddScoped<UpdateDnsJob>();
+            services.AddCloudflareApi(context.Configuration);
+            services.AddSingleton<UpdateDnsBackgroundWorker>();
+            services.AddHostedService(provider => provider.GetRequiredService<UpdateDnsBackgroundWorker>());
             services.AddScoped<CloudflareService>();
             services.AddScoped<IpService>();
-            services.AddQuartz(q =>
-            {
-                q.UseMicrosoftDependencyInjectionJobFactory();
-                q.UseSimpleTypeLoader();
-                q.UseInMemoryStore();
-
-                var interval = context.Configuration.GetValue<int?>("UpdateIntervalMinutes") ?? 5;
-                q.ScheduleJob<UpdateDnsJob>(trigger =>
-                    trigger.WithIdentity("Update DNS trigger")
-                        .WithSimpleSchedule(schedule => schedule.WithIntervalInMinutes(interval).RepeatForever())
-                        .WithDescription("Update DNS")
-                        .StartNow());
-            });
-            services.AddQuartzHostedService(options =>
-            {
-                options.WaitForJobsToComplete = true;
-            });
         })
         .UseSerilog()
         .Build();
