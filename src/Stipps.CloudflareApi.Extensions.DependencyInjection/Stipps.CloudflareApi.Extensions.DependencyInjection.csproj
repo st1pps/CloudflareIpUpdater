@@ -10,4 +10,8 @@
       <ProjectReference Include="..\Stipps.CloudflareApi\Stipps.CloudflareApi.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
+    </ItemGroup>
+
 </Project>

@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using Stipps.CloudflareIpUpdater.Exceptions;
+using Stipps.CloudflareIpUpdater.Models;
 
 namespace Stipps.CloudflareIpUpdater.Services;
 
@@ -19,18 +20,21 @@ public class IpService
         _logger = logger;
     }
 
-    public async Task<(IPAddress? v4, IPAddress? v6)> GetIpAsync()
+    public async Task<IpValues> GetIpAsync(CancellationToken ct)
     {
         _logger.LogInformation("Getting IP address from ipify.org...");
         using var client = _httpClientFactory.CreateClient("Ipify");
-
-        var values = (await GetIPv4Address(client), await GetIPv6Address(client));
-        if (values.Item1 is null && values.Item2 is null)
+        
+        ct.ThrowIfCancellationRequested();
+        var v4 = await GetIPv4Address(client);
+        ct.ThrowIfCancellationRequested();
+        var v6 = await GetIPv6Address(client);
+        if (v4 is null && v6 is null)
         {
             throw new ProcureIpException("Unable to determine IP address");
         }
 
-        return values;
+        return new IpValues(v4, v6);
     }
 
     private async Task<IPAddress?> GetIPv4Address(HttpClient client)
