@@ -20,7 +20,7 @@
       <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
       <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="7.0.0" />
-      <PackageReference Include="Microsoft.NET.Build.Containers" Version="0.3.2" />
+      <PackageReference Include="Microsoft.NET.Build.Containers" Version="0.4.0" />
       <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.1" />
       <PackageReference Include="Serilog.Settings.Configuration" Version="3.4.0" />
       <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />

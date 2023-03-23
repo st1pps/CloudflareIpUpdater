@@ -1,3 +1,5 @@
+using System;
+using System.Runtime.InteropServices;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
@@ -25,6 +27,8 @@ class Build : NukeBuild
     
     [Parameter]
     readonly string DockerRegistry = "registry.hub.docker.com";
+
+    [PathExecutable] Tool Dotnet;
 
     Target Print => _ => _
         .Executes(() =>
@@ -75,18 +79,17 @@ class Build : NukeBuild
         .Requires(() => DockerImageName)
         .Executes(() =>
         {
-           DotNetTasks.DotNetPublish(_ => _
-                .SetProject(Solution.GetProject("Stipps.CloudflareIpUpdater"))
-                .SetConfiguration(Configuration.Release)
-                .SetVersion(GitVersion.MajorMinorPatch)
-                .SetProperty("ContainerImageName", $"\"{DockerImageName}\"")
-                .SetProperty("ContainerImageTag", GitVersion.MajorMinorPatch)
-                //.EnableSelfContained()
-                .EnablePublishSingleFile()
-                .SetProcessArgumentConfigurator(_ => _
-                    .Add("--os linux")
-                    .Add("--arch x64")
-                    .Add("/t:PublishContainer"))
-            );
+            var project = Solution.GetProject("Stipps.CloudflareIpUpdater");
+            
+            // Had to switch to directly calling dotnet, because NUKE makes the workaround for multiple image tags impossible at the moment
+            // https://github.com/dotnet/sdk-container-builds/issues/236
+            
+            // Use different qualifier under windows
+            var qualifier = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? """ \" """ : "'";
+            var publishCommand = $"""
+                    publish {project!.Path} --configuration Release /property:Version={GitVersion.MajorMinorPatch} /property:ContainerImageName={DockerImageName} /property:ContainerImageTags="{qualifier}{GitVersion.MajorMinorPatch};latest{qualifier}" /property:PublishSingleFile=True --os linux --arch x64 /t:PublishContainer
+                """;
+
+            Dotnet.Invoke(publishCommand);
         });
 }
