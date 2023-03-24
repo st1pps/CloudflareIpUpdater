@@ -4,6 +4,7 @@ using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
+using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
@@ -25,9 +26,6 @@ class Build : NukeBuild
     [Parameter] 
     readonly string DockerImageName;
     
-    [Parameter]
-    readonly string DockerRegistry = "registry.hub.docker.com";
-
     [PathExecutable] Tool Dotnet;
 
     Target Print => _ => _
@@ -84,12 +82,23 @@ class Build : NukeBuild
             // Had to switch to directly calling dotnet, because NUKE makes the workaround for multiple image tags impossible at the moment
             // https://github.com/dotnet/sdk-container-builds/issues/236
             
-            // Use different qualifier under windows
-            var qualifier = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? """ \" """ : "'";
             var publishCommand = $"""
-                    publish {project!.Path} --configuration Release /property:Version={GitVersion.MajorMinorPatch} /property:ContainerImageName={DockerImageName} /property:ContainerImageTags="{qualifier}{GitVersion.MajorMinorPatch};latest{qualifier}" /property:PublishSingleFile=True --os linux --arch x64 /t:PublishContainer
+                    publish {project!.Path} --configuration Release /property:Version={GitVersion.MajorMinorPatch} /property:ContainerImageName={DockerImageName} /property:ContainerImageTags="\"{GitVersion.MajorMinorPatch};latest\"" /property:PublishSingleFile=True --os linux --arch x64 /t:PublishContainer
                 """;
 
             Dotnet.Invoke(publishCommand);
+            
+            
+        });
+
+    Target PublishDocker => _ => _
+        .DependsOn(BuildDocker)
+        .Executes(() =>
+        {
+            var dockerUsername = Environment.GetEnvironmentVariable("DOCKER_USERNAME");
+            var dockerPassword = Environment.GetEnvironmentVariable("DOCKER_PASSWORD");
+            DockerTasks.DockerLogin(_ => _.SetUsername(dockerUsername).SetPassword(dockerPassword));
+            DockerTasks.DockerPush(_ => _.EnableAllTags().SetName(DockerImageName));
+            DockerTasks.DockerLogout();
         });
 }
