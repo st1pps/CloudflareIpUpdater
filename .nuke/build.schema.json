@@ -82,6 +82,7 @@
               "Clean",
               "Compile",
               "Print",
+              "PublishDocker",
               "Restore",
               "Test"
             ]
@@ -101,6 +102,7 @@
               "Clean",
               "Compile",
               "Print",
+              "PublishDocker",
               "Restore",
               "Test"
             ]
