@@ -12,13 +12,6 @@ using Nuke.Common.Utilities.Collections;
 using Serilog;
 using static Nuke.Common.IO.FileSystemTasks;
 
-[GitHubActions("ci",
-    GitHubActionsImage.UbuntuLatest,
-    AutoGenerate = true,
-    On = new [] { GitHubActionsTrigger.PullRequest}, 
-    OnPullRequestBranches = new []{"main"}, 
-    InvokedTargets = new[]{ nameof(PublishDocker)},
-    ImportSecrets = new []{ "DOCKER_USERNAME", "DOCKER_PASSWORD"})]
 class Build : NukeBuild
 {
     public static int Main () => Execute<Build>(x => x.Compile);
