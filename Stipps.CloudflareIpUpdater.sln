@@ -19,6 +19,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{81
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stipps.CloudflareIpUpdater", "src\Stipps.CloudflareIpUpdater\Stipps.CloudflareIpUpdater.csproj", "{10D0D3D9-6D1B-4E0D-AF64-BF31743AC9E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stipps.CloudflareIpUpdater.DynDnsEndpoint", "src\Stipps.CloudflareIpUpdater.DynDnsEndpoint\Stipps.CloudflareIpUpdater.DynDnsEndpoint.csproj", "{042402A9-E9E6-48DC-9226-60F888A0A47D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stipps.CloudflareIpUpdater.Extensions.DependencyInjection", "src\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection.csproj", "{1C644DA3-C281-43C9-AC94-08F337D29898}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,5 +55,13 @@ Global
 		{10D0D3D9-6D1B-4E0D-AF64-BF31743AC9E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10D0D3D9-6D1B-4E0D-AF64-BF31743AC9E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10D0D3D9-6D1B-4E0D-AF64-BF31743AC9E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{042402A9-E9E6-48DC-9226-60F888A0A47D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{042402A9-E9E6-48DC-9226-60F888A0A47D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{042402A9-E9E6-48DC-9226-60F888A0A47D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{042402A9-E9E6-48DC-9226-60F888A0A47D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C644DA3-C281-43C9-AC94-08F337D29898}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C644DA3-C281-43C9-AC94-08F337D29898}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C644DA3-C281-43C9-AC94-08F337D29898}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C644DA3-C281-43C9-AC94-08F337D29898}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

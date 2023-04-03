@@ -31,6 +31,7 @@
       <ProjectReference Include="..\Stipps.CloudflareApi.Extensions.DependencyInjection\Stipps.CloudflareApi.Extensions.DependencyInjection.csproj" />
       <ProjectReference Include="..\Stipps.CloudflareApi\Stipps.CloudflareApi.csproj" />
       <ProjectReference Include="..\Stipps.CloudflareApi.Extensions.DependencyInjection\Stipps.CloudflareApi.Extensions.DependencyInjection.csproj" />
+      <ProjectReference Include="..\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection.csproj" />
       <ProjectReference Include="..\Stipps.CloudflareIpUpdater\Stipps.CloudflareIpUpdater.csproj" />
     </ItemGroup>
 

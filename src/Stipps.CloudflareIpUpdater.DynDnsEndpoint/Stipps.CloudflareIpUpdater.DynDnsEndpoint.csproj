@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dab36723-ea93-48e5-8d98-88885907d4db</UserSecretsId>
+        <RootNamespace>Stipps.CloudflareIpUpdates.DynDnsEndpoint</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection.csproj" />
+      <ProjectReference Include="..\Stipps.CloudflareIpUpdater\Stipps.CloudflareIpUpdater.csproj" />
+    </ItemGroup>
+
+</Project>
