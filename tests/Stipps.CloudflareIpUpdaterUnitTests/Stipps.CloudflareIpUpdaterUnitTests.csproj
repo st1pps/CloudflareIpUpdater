@@ -24,7 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Stipps.CloudflareIpUpdater\Stipps.CloudflareIpUpdater.csproj" />
+      <ProjectReference Include="..\..\src\Stipps.CloudflareIpUpdater.Daemon\Stipps.CloudflareIpUpdater.Daemon.csproj" />
     </ItemGroup>
 
 </Project>

@@ -77,7 +77,7 @@ class Build : NukeBuild
         .Requires(() => DockerImageName)
         .Executes(() =>
         {
-            var project = Solution.GetProject("Stipps.CloudflareIpUpdater");
+            var project = Solution.GetProject("Stipps.CloudflareIpUpdater.Daemon");
             
             // Had to switch to directly calling dotnet, because NUKE makes the workaround for multiple image tags impossible at the moment
             // https://github.com/dotnet/sdk-container-builds/issues/236
