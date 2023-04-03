@@ -7,8 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\src\Stipps.CloudflareApi.Extensions.DependencyInjection\Stipps.CloudflareApi.Extensions.DependencyInjection.csproj" />
-      <ProjectReference Include="..\src\Stipps.CloudflareIpUpdater\Stipps.CloudflareIpUpdater.csproj" />
       <ProjectReference Include="..\Stipps.CloudflareApi.Extensions.DependencyInjection\Stipps.CloudflareApi.Extensions.DependencyInjection.csproj" />
       <ProjectReference Include="..\Stipps.CloudflareIpUpdater\Stipps.CloudflareIpUpdater.csproj" />
     </ItemGroup>
