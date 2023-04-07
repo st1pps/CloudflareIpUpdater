@@ -110,11 +110,12 @@ public class CloudflareService
 
         if (existingRecord is null)
         {
-            _logger.LogInformation("No existing {type} record found, creating new one", type);
+            _logger.LogInformation("No existing {Type} record found, creating new one", type);
             await _client.CreateRecord(
                 new CreateDnsRecordRequest(_settings.Value.ZoneId, _settings.Value.RecordName, ip)
                 {
-                    Proxied = true
+                    Proxied = true,
+                    Comment = RecordComment()
                 });
             return true;
         }
@@ -122,15 +123,20 @@ public class CloudflareService
         if (existingRecord.Content == ip.ToString())
         {
             var version = type == DnsRecordType.A ? "v4" : "v6";
-            _logger.LogInformation("IP{type} address is already up to date", version);
+            _logger.LogInformation("IP{Type} address is already up to date", version);
             return recordsRemoved;
         }
 
         _logger.LogInformation("Updating existing record {Record} with content {Content} to {NewContent}",
             existingRecord.Name, existingRecord.Content, ip.ToString());
-        await _client.UpdateRecord(new UpdateDnsRecordRequest(existingRecord).WithIpContent(ip));
+        await _client.UpdateRecord(new UpdateDnsRecordRequest(existingRecord)
+            .WithIpContent(ip)
+            .WithComment(RecordComment()));
         return true;
     }
+
+    private static string RecordComment()
+        => $"Automatically updated {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC";
 
     private async Task RemoveRecords(IEnumerable<DnsRecord> records)
     {

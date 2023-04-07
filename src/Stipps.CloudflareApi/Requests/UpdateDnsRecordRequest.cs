@@ -50,6 +50,12 @@ public class UpdateDnsRecordRequest
         Content = address.ToString();
         return this;
     }
+
+    public UpdateDnsRecordRequest WithComment(string comment)
+    {
+        Comment = comment;
+        return this;
+    }
     
     public UpdateDnsRecordRequest WithTtl(int? ttl)
     {
