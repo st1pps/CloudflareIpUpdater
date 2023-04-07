@@ -17,11 +17,11 @@ public static class ServiceCollectionExtensions
         
         services.AddHttpClient(CloudflareApiClient.ClientName, (svc,client) =>
         {
-            var settings = svc.GetRequiredService<CloudflareConnectionSettings>();
+            var s = svc.GetRequiredService<CloudflareConnectionSettings>();
             client.BaseAddress = new Uri("https://api.cloudflare.com");
-            client.DefaultRequestHeaders.Add("X-Auth-Email", settings.Email);
+            client.DefaultRequestHeaders.Add("X-Auth-Email", s.Email);
             client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", settings.ApiToken);
+                new AuthenticationHeaderValue("Bearer", s.ApiToken);
         });
         services.AddSingleton<ICloudflareApiClient, CloudflareApiClient>();
         return services;

@@ -3,8 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
-using Stipps.CloudflareApi.Extensions.DependencyInjection;
-using Stipps.CloudflareIpUpdater.Configuration;
+using Stipps.CloudflareIpUpdater.Extensions.DependencyInjection;
 using Stipps.CloudflareIpUpdater.Services;
 using Stipps.CloudflareIpUpdater.Workers;
 
@@ -46,19 +45,10 @@ static IHost BuildHost(string[] args) =>
         {
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(context.Configuration).CreateLogger();
             services.AddLogging();
-            services.AddMemoryCache();
+            services.AddCloudflareService(context.Configuration);
             
-            services.AddOptions<CloudflareServiceSettings>()
-                .Configure(settings =>
-                    context.Configuration.GetSection(CloudflareServiceSettings.SectionName).Bind(settings))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-            
-            services.AddHttpClient();
-            services.AddCloudflareApi(context.Configuration);
             services.AddSingleton<UpdateDnsBackgroundWorker>();
             services.AddHostedService(provider => provider.GetRequiredService<UpdateDnsBackgroundWorker>());
-            services.AddScoped<CloudflareService>();
             services.AddScoped<IpService>();
         })
         .UseSerilog()

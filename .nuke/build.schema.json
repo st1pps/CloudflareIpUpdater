@@ -21,9 +21,6 @@
         "DockerImageName": {
           "type": "string"
         },
-        "DockerRegistry": {
-          "type": "string"
-        },
         "Help": {
           "type": "boolean",
           "description": "Shows the help text for this build assembly"
@@ -82,6 +79,8 @@
               "Clean",
               "Compile",
               "Print",
+              "PublishDocker",
+              "PublishEndpoint",
               "Restore",
               "Test"
             ]
@@ -101,6 +100,8 @@
               "Clean",
               "Compile",
               "Print",
+              "PublishDocker",
+              "PublishEndpoint",
               "Restore",
               "Test"
             ]

@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
@@ -27,6 +26,8 @@ class Build : NukeBuild
     readonly string DockerImageName;
     
     [PathExecutable] Tool Dotnet;
+    
+    readonly AbsolutePath PublishDirectory = RootDirectory / "publish";
 
     Target Print => _ => _
         .Executes(() =>
@@ -41,7 +42,8 @@ class Build : NukeBuild
             RootDirectory.GlobDirectories("*/src/*/obj",
                     "*/src/*/bin",
                     "*/test/*/obj",
-                    "*/test/*/bin")
+                    "*/test/*/bin",
+                    "publish/*")
                 .ForEach(DeleteDirectory);
         });
 
@@ -77,7 +79,7 @@ class Build : NukeBuild
         .Requires(() => DockerImageName)
         .Executes(() =>
         {
-            var project = Solution.GetProject("Stipps.CloudflareIpUpdater");
+            var project = Solution.GetProject("Stipps.CloudflareIpUpdater.Daemon");
             
             // Had to switch to directly calling dotnet, because NUKE makes the workaround for multiple image tags impossible at the moment
             // https://github.com/dotnet/sdk-container-builds/issues/236
@@ -101,4 +103,24 @@ class Build : NukeBuild
             DockerTasks.DockerPush(_ => _.EnableAllTags().SetName(DockerImageName));
             DockerTasks.DockerLogout();
         });
+ 
+    Target PublishEndpoint => _ => _
+        .DependsOn(Test)
+        .Executes(() =>
+        {
+            var project = Solution.GetProject("Stipps.CloudflareIpUpdater.DynDnsEndpoint");
+            if (project is null) throw new Exception("Project not found");
+            var outputDirectory = PublishDirectory / project.Name;
+            DotNetTasks.DotNetPublish(_ => _
+                .SetProject(project)
+                .SetOutput(outputDirectory)
+                .SetConfiguration(Configuration.Release)
+                .SetNoBuild(InvokedTargets.Contains(Compile))
+                .SetNoRestore(InvokedTargets.Contains(Restore))
+                .DisableSelfContained()
+                .SetRuntime("linux-x64")
+            );
+        });
+        
+        
 }

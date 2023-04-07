@@ -71,19 +71,28 @@ public class CloudflareService
             _logger.LogInformation("Using cached DNS records");
         }
         
-        await UpdateRecord(values.V4, DnsRecordType.A, records!);
-        await UpdateRecord(values.V6, DnsRecordType.AAAA, records!);
+        var v4Changed = await UpdateRecord(values.V4, DnsRecordType.A, records!);
+        var v6Changed = await UpdateRecord(values.V6, DnsRecordType.AAAA, records!);
+        if(v4Changed || v6Changed) _cache.Remove(DnsRecordsListCacheKey);
     }
 
-    private async Task UpdateRecord(IPAddress? ip, DnsRecordType type, ICollection<DnsRecord> records)
+    /// <summary>
+    /// Updates the record type to the given IP address. Returns true if a change was made
+    /// </summary>
+    /// <param name="ip"></param>
+    /// <param name="type"></param>
+    /// <param name="records"></param>
+    /// <returns></returns>
+    private async Task<bool> UpdateRecord(IPAddress? ip, DnsRecordType type, ICollection<DnsRecord> records)
     {
         DnsRecord? existingRecord = null;
+        var recordsRemoved = false;
         if (records.Any())
         {
             if (ip is null)
             {
                 await RemoveRecords(records.Where(e => e.Type == type));
-                return;
+                return true;
             }
             
             var allExisting = records.Where(e => e.Type == type).ToList();
@@ -91,35 +100,43 @@ public class CloudflareService
             {
                 _logger.LogWarning("Found multiple records of type {Type}, removing all but the first one", type);
                 await RemoveRecords(allExisting.Skip(1));
+                recordsRemoved = true;
             }
 
             existingRecord = records.FirstOrDefault(e => e.Type == type);
         }
 
-        if (ip is null) return;
+        if (ip is null) return false;
 
         if (existingRecord is null)
         {
-            _logger.LogInformation("No existing {type} record found, creating new one", type);
+            _logger.LogInformation("No existing {Type} record found, creating new one", type);
             await _client.CreateRecord(
                 new CreateDnsRecordRequest(_settings.Value.ZoneId, _settings.Value.RecordName, ip)
                 {
-                    Proxied = true
+                    Proxied = true,
+                    Comment = RecordComment()
                 });
-            return;
+            return true;
         }
 
         if (existingRecord.Content == ip.ToString())
         {
             var version = type == DnsRecordType.A ? "v4" : "v6";
-            _logger.LogInformation("IP{type} address is already up to date", version);
-            return;
+            _logger.LogInformation("IP{Type} address is already up to date", version);
+            return recordsRemoved;
         }
 
         _logger.LogInformation("Updating existing record {Record} with content {Content} to {NewContent}",
             existingRecord.Name, existingRecord.Content, ip.ToString());
-        await _client.UpdateRecord(new UpdateDnsRecordRequest(existingRecord).WithIpContent(ip));
+        await _client.UpdateRecord(new UpdateDnsRecordRequest(existingRecord)
+            .WithIpContent(ip)
+            .WithComment(RecordComment()));
+        return true;
     }
+
+    private static string RecordComment()
+        => $"Automatically updated {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC";
 
     private async Task RemoveRecords(IEnumerable<DnsRecord> records)
     {
