@@ -34,7 +34,7 @@ finally
 
 static WebApplication BuildApplication(string[] args)
 {
-    var builder = WebApplication.CreateBuilder(args);
+    var builder = WebApplication.CreateSlimBuilder(args);
     builder.Configuration.AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings", "appsettings.json"),
             optional: false);
 
