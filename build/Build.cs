@@ -9,13 +9,14 @@ using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
 using Serilog;
 using static Nuke.Common.IO.FileSystemTasks;
+// ReSharper disable AllUnderscoreLocalParameterName
 
 class Build : NukeBuild
 {
     public static int Main () => Execute<Build>(x => x.Compile);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
-    readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+    readonly Configuration Configuration = Configuration.Release;
     
     [Solution] readonly Solution Solution;
     
@@ -25,7 +26,7 @@ class Build : NukeBuild
     [Parameter] 
     readonly string DockerImageName;
     
-    [PathExecutable] Tool Dotnet;
+    [PathVariable] Tool Dotnet;
     
     readonly AbsolutePath PublishDirectory = RootDirectory / "publish";
 
