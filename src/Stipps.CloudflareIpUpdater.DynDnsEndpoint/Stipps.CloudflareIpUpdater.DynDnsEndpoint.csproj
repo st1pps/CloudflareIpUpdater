@@ -10,11 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+      <ProjectReference Include="..\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection\Stipps.CloudflareIpUpdater.Extensions.DependencyInjection.csproj" />
+      <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
     </ItemGroup>
 
 </Project>

@@ -114,7 +114,7 @@ public class CloudflareService
             await _client.CreateRecord(
                 new CreateDnsRecordRequest(_settings.Value.ZoneId, _settings.Value.RecordName, ip)
                 {
-                    Proxied = true,
+                    Proxied = _settings.Value.ProxyEnabled,
                     Comment = RecordComment()
                 });
             return true;

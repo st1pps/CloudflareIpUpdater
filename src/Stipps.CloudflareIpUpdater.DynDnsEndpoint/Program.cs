@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
@@ -11,9 +12,13 @@ using Stipps.CloudflareIpUpdates.DynDnsEndpoint;
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Diagnostics", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .CreateLogger();
+    .WriteTo.Console(outputTemplate: "[{Level}] ({SourceContext}) {Message}{NewLine}{Exception}")
+    .CreateBootstrapLogger();
 
 try
 {
@@ -35,12 +40,21 @@ finally
 static WebApplication BuildApplication(string[] args)
 {
     var builder = WebApplication.CreateBuilder(args);
-    builder.Configuration.AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings", "appsettings.json"),
-            optional: false);
-
-    Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
-    builder.Logging.ClearProviders();
-    builder.Logging.AddSerilog();
+    builder.Services.AddSerilog((services, lc) =>
+    {
+        lc
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Diagnostics", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Http", LogEventLevel.Warning)
+            .ReadFrom.Configuration(builder.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            
+            .WriteTo.Console(outputTemplate: "[{Level}] ({SourceContext}) {Message}{NewLine}{Exception}");
+    });
     
     builder.Services
         .AddCloudflareService(builder.Configuration)
@@ -50,18 +64,20 @@ static WebApplication BuildApplication(string[] args)
         .ValidateOnStart();
     
     var app = builder.Build();
-
+    app.UseSerilogRequestLogging();
     app.UseForwardedHeaders(new ForwardedHeadersOptions
     {
         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
     });
 
     app.MapGet("/update",
-        async (string username, string password, string? ipv4, string? ipv6, IOptions<DynDnsCredentials> credentials, CloudflareService service) =>
+        async ([FromServices]ILoggerFactory loggerFactory, string username, string password, string? ipv4, string? ipv6, IOptions<DynDnsCredentials> credentials, CloudflareService service) =>
         {
+            var logger = loggerFactory.CreateLogger("UpdateEndpoint");
             if (username != credentials.Value.Username || password != credentials.Value.Password)
             {
-                return Results.Forbid();
+                logger.LogInformation("Unauthorized request to update IP address.");
+                return Results.StatusCode(403);
             }
     
             var v4Success = IPAddress.TryParse(ipv4, out var v4);
@@ -69,21 +85,24 @@ static WebApplication BuildApplication(string[] args)
             
             if(!v4Success && !v6Success)
             {
+                logger.LogWarning("Invalid IP address format.");
                 return Results.BadRequest();
             }
     
             try
             {
+                logger.LogInformation("Updating IP address to {v4} and {v6}", v4, v6);
                 await service.UpdateIp(new IpValues(v4, v6));
             }
             catch
             {
+                logger.LogError("Failed to update IP address.");
                 return Results.StatusCode(500);
             }
     
             return Results.Ok();
     
         });
-
+    
     return app;
 }

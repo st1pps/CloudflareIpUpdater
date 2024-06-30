@@ -119,7 +119,6 @@ class Build : NukeBuild
                 .SetNoBuild(InvokedTargets.Contains(Compile))
                 .SetNoRestore(InvokedTargets.Contains(Restore))
                 .DisableSelfContained()
-                .SetRuntime("linux-x64")
             );
         });
         
